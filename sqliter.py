@@ -13,18 +13,26 @@ class Sqliter():
         return len(res)
 
     def select_user_completed_questions(self, user_id):
-        res = self.cur.execute('''SELECT quiz_ids FROM balance WHERE user_id = ?''', (user_id,)).fetchall()[0]
+        res = self.cur.execute('''SELECT quiz_ids FROM balance WHERE user_id = ?''', (user_id,)).fetchall()[0][0].split(
+            ',')
         return res
 
     def select_question(self, user_id):
         if len(self.select_user_completed_questions(user_id=user_id)) != self.count_rows():
             rand_num = randint(1, self.count_rows())
-            while rand_num in self.select_user_completed_questions(user_id=user_id):
+            while str(rand_num) in self.select_user_completed_questions(user_id=user_id):
                 rand_num = randint(1, self.count_rows())
             res = self.cur.execute('''SELECT * FROM [quiz] WHERE id=?''', (rand_num,)).fetchall()[0]
             return res
         else:
             return 'error'
+
+    def update_balance(self, user_id):
+        self.cur.execute('''UPDATE balance SET balance = balance + 1 WHERE user_id=?''', (user_id,))
+
+    def select_current_question(self, question_id):
+        res = self.cur.execute('''SELECT * FROM quiz WHERE id=?''', (question_id,)).fetchall()[0]
+        return res
 
     def create_user(self, user_id):
         f = False
