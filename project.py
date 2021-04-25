@@ -67,7 +67,6 @@ def inline(x):
             for i in quotes:
                 bot.send_message(x.message.chat.id, f"[{i.text}]({i['href']})", parse_mode='Markdown',
                                  disable_web_page_preview=True)
-            show_buttons(x.message.chat.id)
             data.get_news(x.message.chat.id)
         data.close()
         show_buttons(x.message.chat.id)
