@@ -25,9 +25,13 @@ def help(message):
     :return:
     '''
     bot.send_message(message.chat.id, 'Вы можете посмотреть баланс, нажав на кнопку balance')
-    bot.send_message(message.chat.id, 'Нажав на кнопку IT новости, вы можете посмотреть актуальные новости о мире IT')
+    bot.send_message(message.chat.id,
+                     'Нажав на кнопку IT новости, вы можете посмотреть актуальные новости о мире IT за 1 монету')
     bot.send_message(message.chat.id,
                      'Нажав на кнопку Books, вы можете найти книгу по программированию на языке python и скачать ее за 3 монеты')
+    bot.send_message(message.chat.id,
+                     'Вы можете ответить на вопрос, нажав на кнопку Random Quiz, чтобы заработать монет')
+    show_buttons(message.chat.id)
 
 
 @bot.message_handler(commands=["start"])
@@ -52,13 +56,21 @@ def inline(x):
     :return:
     '''
     if x.data == 'get_news':
-        url = 'https://habr.com/ru/news/'
-        response = requests.get(url)
-        soup = BeautifulSoup(response.text, 'lxml')
-        quotes = soup.find_all('a', class_='post__title_link')
-        for i in quotes:
-            bot.send_message(x.message.chat.id, f"[{i.text}]({i['href']})", parse_mode='Markdown',
-                             disable_web_page_preview=True)
+        data = Sqliter('db/quiz.sqlite', 'balance')
+        balance = data.select_user(x.message.chat.id)
+        if balance < 1:
+            bot.send_message(x.message.chat.id, 'К сожалению, у вас недостаточно баланса, чтобы посмотреть новости :(')
+        else:
+            url = 'https://habr.com/ru/news/'
+            response = requests.get(url)
+            soup = BeautifulSoup(response.text, 'lxml')
+            quotes = soup.find_all('a', class_='post__title_link')
+            for i in quotes:
+                bot.send_message(x.message.chat.id, f"[{i.text}]({i['href']})", parse_mode='Markdown',
+                                 disable_web_page_preview=True)
+            show_buttons(x.message.chat.id)
+            data.get_news(x.message.chat.id)
+        data.close()
         show_buttons(x.message.chat.id)
     if x.data == 'quiz':
         data = Sqliter('db/quiz.sqlite', 'quiz')

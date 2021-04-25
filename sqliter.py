@@ -31,6 +31,9 @@ class Sqliter():
     def update_balance(self, user_id):
         self.cur.execute('''UPDATE balance SET balance = balance + 1 WHERE user_id=?''', (user_id,))
 
+    def get_news(self, user_id):
+        self.cur.execute('''UPDATE balance SET balance = balance - 1 WHERE user_id=?''', (user_id,))
+
     def select_current_question(self, question_id):
         res = self.cur.execute('''SELECT * FROM quiz WHERE id=?''', (question_id,)).fetchall()[0]
         return res
