@@ -24,9 +24,10 @@ def help(message):
     :param message:
     :return:
     '''
+    bot.send_message(message.chat.id, 'Вы можете посмотреть баланс, нажав на кнопку balance')
     bot.send_message(message.chat.id, 'Нажав на кнопку IT новости, вы можете посмотреть актуальные новости о мире IT')
     bot.send_message(message.chat.id,
-                     'Нажав на кнопку Books, вы можете найти книгу по программированию на языке python и скачать ее за 1 монету')
+                     'Нажав на кнопку Books, вы можете найти книгу по программированию на языке python и скачать ее за 3 монеты')
 
 
 @bot.message_handler(commands=["start"])
@@ -63,17 +64,20 @@ def inline(x):
         data = Sqliter('db/quiz.sqlite', 'quiz')
         question = data.select_question(x.message.chat.id)
         data.close()
-        with open(f'short_file_for_{x.message.chat.id}.txt', 'w') as file:
-            file.write(str(question[0]))
-        key = generate_markup(question[2], question[3])
-        send = bot.send_message(x.message.chat.id, question[1], reply_markup=key)
-        bot.register_next_step_handler(send, select_question)
+        if question != 'error':
+            with open(f'short_file_for_{x.message.chat.id}.txt', 'w') as file:
+                file.write(str(question[0]))
+            key = generate_markup(question[2], question[3])
+            send = bot.send_message(x.message.chat.id, question[1], reply_markup=key)
+            bot.register_next_step_handler(send, select_question)
+        else:
+            bot.send_message(x.message.chat.id, 'К сожалению вопросы закончились')
     if x.data == 'book':
         data = Sqliter('db/quiz.sqlite', 'balance')
         balance = data.select_user(x.message.chat.id)
-        if balance < 5:
+        if balance < 3:
             bot.send_message(x.message.chat.id,
-                             'К сожалению, ваш баланс меньше 5, пройдите тест, чтобы заработать больше монет')
+                             'К сожалению, ваш баланс меньше 3, пройдите тест, чтобы заработать больше монет')
             show_buttons(x.message.chat.id)
         else:
             send = bot.send_message(x.message.chat.id, 'Введите название или часть названия книги, автора ниже:')
@@ -138,7 +142,7 @@ def choose_book(message):
     with open(f'short_file_for_{message.chat.id}.txt', 'r') as file:
         current_list = file.read().splitlines()
     os.remove(f'short_file_for_{message.chat.id}.txt')
-    specified_number = int(message.text)
+    specified_number = int(message.text) + 1
     href = current_list[specified_number].split('/////')[1]
     try:
         response = requests.get(href, stream=True)
@@ -200,13 +204,13 @@ def select_question(message):
     data = Sqliter('db/quiz.sqlite', 'quiz')
     question = data.select_current_question(int(res[0]))
     if message.text == question[2]:
+        data.add_one_correct_respond(message.chat.id, question[0])
         data.update_balance(message.chat.id)
         bot.send_message(message.chat.id, 'Поздравляем, ваш баланс увеличился')
     else:
         bot.send_message(message.chat.id, 'К сожалению вы не правильно ответили на вопрос :(')
+    show_buttons(message.chat.id)
     data.close()
-
-    # if message.text ==
 
 
 if __name__ == '__main__':

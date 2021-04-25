@@ -13,8 +13,9 @@ class Sqliter():
         return len(res)
 
     def select_user_completed_questions(self, user_id):
-        res = self.cur.execute('''SELECT quiz_ids FROM balance WHERE user_id = ?''', (user_id,)).fetchall()[0][0].split(
-            ',')
+        res = self.cur.execute('''SELECT quiz_ids FROM balance WHERE user_id = ?''', (user_id,)).fetchall()
+        if res:
+            res = res[0][0].split(',')
         return res
 
     def select_question(self, user_id):
@@ -42,7 +43,7 @@ class Sqliter():
                 break
         if not f:
             balance = 0
-            self.cur.execute('''INSERT INTO balance VALUES (?, ?)''', (user_id, balance))
+            self.cur.execute('''INSERT INTO balance VALUES (?, ?, ?)''', (user_id, balance, ''))
 
     def select_user(self, user_id):
         res = self.cur.execute('''SELECT balance FROM balance WHERE user_id=?''', (user_id,)).fetchall()[0][0]
@@ -52,11 +53,17 @@ class Sqliter():
         res = [i[0] for i in self.cur.execute('''SELECT user_id FROM [balance]''').fetchall()]
         return res
 
+    def add_one_correct_respond(self, user_id, question_id):
+        all_ids = self.select_user_completed_questions(user_id)
+        all_ids.append(question_id)
+        all_ids = ','.join(list(map(str, all_ids)))
+        self.cur.execute('''UPDATE balance SET quiz_ids = ?''', (all_ids,))
+
     def bought_book(self, user_id):
         balance_for_user_id = \
-            self.cur.execute('''SELECT balance FROM [balance] WHERE user_id=''', (user_id)).fetchall()[0]
+            self.cur.execute('''SELECT balance FROM [balance] WHERE user_id=?''', (user_id,)).fetchall()[0][0]
         if balance_for_user_id > 0:
-            self.cur.execute('''UPDATE [balance] SET balance = balance - 5 WHERE user_id=''', (user_id,))
+            self.cur.execute('''UPDATE [balance] SET balance = balance - 3 WHERE user_id=?''', (user_id,))
         else:
             return
 
