@@ -153,7 +153,6 @@ def choose_book(message):
         current_list = file.read().splitlines()
     os.remove(f'short_file_for_{message.chat.id}.txt')
     specified_number = int(message.text) - 1
-    print(current_list)
     href = current_list[specified_number].split('/////')[1]
     try:
         response = requests.get(href, stream=True)
@@ -209,6 +208,11 @@ def show_buttons(user_id):
 
 
 def select_question(message):
+    '''
+    Проверка правильного ответа на вопрос
+    :param message:
+    :return:
+    '''
     with open(f'short_file_for_{message.chat.id}.txt') as file:
         res = file.read().splitlines()
     os.remove(f'short_file_for_{message.chat.id}.txt')
