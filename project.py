@@ -1,4 +1,3 @@
-import time
 from telebot import TeleBot, types
 from telethon import TelegramClient
 from bs4 import BeautifulSoup
@@ -154,7 +153,8 @@ def choose_book(message):
     with open(f'short_file_for_{message.chat.id}.txt', 'r') as file:
         current_list = file.read().splitlines()
     os.remove(f'short_file_for_{message.chat.id}.txt')
-    specified_number = int(message.text) + 1
+    specified_number = int(message.text) - 1
+    print(current_list)
     href = current_list[specified_number].split('/////')[1]
     try:
         response = requests.get(href, stream=True)
